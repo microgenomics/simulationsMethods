@@ -11,18 +11,13 @@ do
 		cfileband=1
 		invalidband=0
 	;;
-	"--rfile")
-		rfileband=1
-		invalidband=0
-	;;
 	"--help")
 	invalidband=0
 		echo "#########################################################################################"
 		echo -e "\nUsage: bash simulationMethods --cfile [config file]"
 		echo -e "\nOptions aviable for config file:"
 		echo "GENOMESIZEBALANCE is the type of genome, for example 'B' for bacteria, 'V' for virus, etc."
-		echo "--rfile reads file, if you have paired end reads, use: --rfile readfile1.fa,readfile2.fa"
-		
+
 		echo -e "\n#########################################################################################"
 		exit
 	;;
@@ -143,7 +138,7 @@ do
 			else
 				mkdir species_$c
 				cd species_$c
-				echo "------Calling subpipe SpecieSelection" 
+				echo "------Calling subpipe SpecieSelection"
 				
 				if [ $((total)) -le $((c))  ]; then
 					bash ${SEPA_HOME}/Modules/scripts/SpecieSelection.bash "${SEPA_HOME}" "$GENOME_DB" "$PERMANENT" "$total"
