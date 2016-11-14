@@ -1,0 +1,11 @@
+SEPAHOME=/Users/castrolab04/Desktop/SEPA
+BEGIN_FOLDER=Simulation
+GENOMESIZEBALANCE=B
+SPECIES=10	#this means that the program take 10 fastas randomly to make the simulation 
+DEEPSEQUENCE=100000
+DOMINANCE=10
+READSIZE=75,150,300,1000
+PERMAMENT=35
+THREADS=16
+GENOME_DB=/Users/castrolab04/DB/mydb.fasta
+METASIMFOLDER=/Users/castrolab04/programs/metasim
