@@ -10,6 +10,8 @@ do
 	"--cfile")
 		cfileband=1
 		invalidband=0
+		selection=0
+
 	;;
 	"--help")
 	invalidband=0
@@ -34,8 +36,8 @@ do
 			do
 				Pname=`echo "$parameter" |awk 'BEGIN{FS="="}{print $1}'`		
 				case $Pname in
-					"SEPA_HOME")
-						SEPA_HOME=$(echo "$parameter" | awk 'BEGIN{FS="="}{print $2}' | sed "s/,/ /g")
+					"SEPAHOME")
+						SEPAHOME=$(echo "$parameter" | awk 'BEGIN{FS="="}{print $2}' | sed "s/,/ /g")
 					;;
 					"GENOMESIZEBALANCE")
 						GENOMESIZEBALANCE=$(echo "$parameter" | awk 'BEGIN{FS="="}{print $2}' | sed "s/,/ /g")
@@ -73,15 +75,23 @@ do
 				esac
 			done
 			
-
-			if [ "$COORDFOLDER" == "" ];then
-				COORDFOLDER=$HOME
-			fi
 			statusband=$((statusband+1))
 			cfileband=0
 
 			if [ "$GENOME_DB" == "" ];then
 				echo "no GENOME_DB was spcified"
+				exit
+			else
+				GDB=`echo "$GENOME_DB" |rev |cut -d "/" -f 1 |rev`
+				GDBDIR=`echo "$GENOME_DB" |rev |cut -d "/" -f 2- |rev`
+				cd $GDBDIR
+				dbpath=`pwd`
+				GENOME_DB=`echo "$dbpath/$GDB"`
+				cd $OLDPWD
+			fi
+
+			if [ ! -d "$METASIMFOLDER" ];then
+				echo "METASIMFOLDER no exist, impossible to continue"
 				exit
 			fi
 		fi
@@ -106,18 +116,20 @@ do
 
 	if [ -d $a ]; then
 		cd $a
+		echo "----Organism: $a"
 		if [ -f fasta_0.fasta ]; then
 			echo "Fastas here, continue"
+			selection=1
 		else
 			echo "Spliting $GENOME_DB"
-			awk -f ${SEPA_HOME}/Modules/scripts/splitmultifasta.awk $GENOME_DB  #one fasta per entry wil be generate.
+			awk -f ${SEPAHOME}/Modules/scripts/splitmultifasta.awk $GENOME_DB  #one fasta per entry wil be generate.
 		fi
 	else
 		mkdir $a
 		cd $a
 		echo "Spliting $GENOME_DB" 
 	
-		awk -f ${SEPA_HOME}/Modules/scripts/splitmultifasta.awk $GENOME_DB  #a lot of fastas wil be generate.
+		awk -f ${SEPAHOME}/Modules/scripts/splitmultifasta.awk $GENOME_DB  #a lot of fastas wil be generate.
 
 	fi
 	
@@ -135,15 +147,19 @@ do
 
 			if [ -d species_$c ]; then
 				cd species_$c
+				if [ $((selection)) -eq 1 ];then
+					mv ../*.fasta .
+				fi
 			else
 				mkdir species_$c
 				cd species_$c
 				echo "------Calling subpipe SpecieSelection"
 				
 				if [ $((total)) -le $((c))  ]; then
-					bash ${SEPA_HOME}/Modules/scripts/SpecieSelection.bash "${SEPA_HOME}" "$GENOME_DB" "$PERMANENT" "$total"
+					bash ${SEPAHOME}/Modules/scripts/SpecieSelection.bash "${SEPAHOME}" "$GENOME_DB" "$PERMANENT" "$total"
 				else
-					bash ${SEPA_HOME}/Modules/scripts/SpecieSelection.bash "${SEPA_HOME}" "$GENOME_DB" "$PERMANENT" "$c"
+					#bash ${SEPAHOME}/Modules/scripts/SpecieSelection.bash "${SEPAHOME}" "$GENOME_DB" "$PERMANENT" "$c"
+					mv ../*.fasta .
 				fi
 				
 			fi
@@ -168,8 +184,8 @@ do
 						mkdir dominance_$e
 						cd dominance_$e
 						mv ../*.fasta .
-						gipermanent=`head -n1 ">" fasta_$PERMANENT.fasta | awk -F'[|]gi[|]' '{print $2}' |awk -F"[|]" '{print $1}'`
-						bash ${SEPA_HOME}/Modules/scripts/DomainDistribution.bash "$SEPA_HOME" "$c" "$d" "$e" "$gipermanent"
+						gipermanent=`head -n1 fasta_$PERMANENT.fasta | awk -F"gi[|]" '{print $2}' |awk -F"[|]" '{print $1}'`
+						bash ${SEPAHOME}/Modules/scripts/DomainDistribution.bash "$SEPAHOME" "$c" "$d" "$e" "$gipermanent"
 						for rsize in $READSIZE
 						do
 							echo "dataset_A$d""_R$rsize	$d	$rsize	popu$c""Abun$d""Dom$e.mprf" >> metasim_simulation_table
@@ -177,8 +193,8 @@ do
 
 						echo "------------execute metasim scripts" 
 
-						bash ${SEPA_HOME}/Modules/scripts/Metasim.sh "$THREADS" "$METASIMFOLDER" metasim_simulation_table
-						bash ${SEPA_HOME}/Modules/scripts/SplitMetasimPairs.sh "${SEPA_HOME}"
+						bash ${SEPAHOME}/Modules/scripts/Metasim.sh "$THREADS" "$METASIMFOLDER" metasim_simulation_table
+						bash ${SEPAHOME}/Modules/scripts/SplitMetasimPairs.sh "${SEPAHOME}"
 						for rsize in $READSIZE
 						do
 							rm dataset_A$d""_R$rsize/*.fa.gz #to save disk space

@@ -6,6 +6,8 @@
 ##Usage
 * Bash >= v4 (tested in Linux)
 * [Metasim](http://ab.inf.uni-tuebingen.de/software/metasim/) with desired genomes
+* java version >= 6.0
+* Python with Biopython module
 
 ##Usage
 
