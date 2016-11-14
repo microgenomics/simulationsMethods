@@ -173,7 +173,7 @@ do
 						mkdir dominance_$e
 						cd dominance_$e
 						mv ../*.fasta .
-						gipermanent=`grep ">" fasta_$PERMANENT.fasta | awk 'BEGIN{FS="|"}{print $4}'`
+						gipermanent=`head -n1 ">" fasta_$PERMANENT.fasta | awk -F'[|]gi[|]' '{print $2}' |awk -F"[|]" '{print $1}'`
 						bash ${SEPA_HOME}/Modules/scripts/DomainDistribution.bash "$SEPA_HOME" "$c" "$d" "$e" "$gipermanent"
 						for rsize in $READSIZE
 						do
@@ -182,7 +182,7 @@ do
 
 						echo "------------execute metasim scripts" 
 
-						bash ${SEPA_HOME}/Modules/scripts/Metasim.sh "$THREADS" "$METASIMFOLDER"
+						bash ${SEPA_HOME}/Modules/scripts/Metasim.sh "$THREADS" "$METASIMFOLDER" metasim_simulation_table
 						bash ${SEPA_HOME}/Modules/scripts/SplitMetasimPairs.sh "${SEPA_HOME}"
 						for rsize in $READSIZE
 						do
